@@ -1,21 +1,15 @@
--f https://download.pytorch.org/whl/torch_stable.html
 jinja2==2.9.6
 aiofiles==0.5.0
-fastapi==0.63.0
 gunicorn==20.0.4
-httptools==0.1.1
-json5==0.9.5
-jsonschema==3.2.0
-urllib3==1.25.11
-uvicorn==0.13.3
+uvicorn
 torch 
-torchvision==0.8.2+cpu
+torchvision
 python-multipart==0.0.5
 uvloop==0.14.0
-onnx==1.8.1
-onnxruntime==1.6.0
-numpy==1.20.1
-pandas==1.2.3
+onnx
+onnxruntime
+numpy
+pandas
 opencv-python-headless==4.5.2.52
 streamlit
 av

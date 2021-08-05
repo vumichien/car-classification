@@ -147,7 +147,7 @@ def show_original():
         path to image
     """
 
-    if st.sidebar.checkbox('Upload'):
+    if st.sidebar.checkbox('Upload', value=True):
         content_file = st.sidebar.file_uploader("Choose a Content Image", type=["png", "jpg", "jpeg"])
     else:
         content_name = st.sidebar.selectbox("Choose the content images:", args.CONTENT_IMAGES_NAME)

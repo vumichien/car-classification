@@ -75,7 +75,7 @@ def get_classification(image_tensor, df_train, sub_test_list, embeddings,
         if vehicle=='nan':
             vehicle='Vehicle: No information'
         else:
-            vehicle='\nVehicle: '+vehicle
+            vehicle='Vehicle: '+vehicle
         year = str(df_train.iloc[knn.indices.item(), 3])
         if year=='nan':
             year='Year: No information'
@@ -100,11 +100,14 @@ def get_classification_frame(image_tensor, df_train, sub_test_list, embeddings,
     ort_inputs = {input_name: to_numpy(image_tensor)}
     pred, em = ort_session.run(None, ort_inputs)
 
-    knn = torch.nn.CosineSimilarity(dim = 1)(torch.tensor(em), embeddings).topk(1, largest=True)
-    part = str(df_train.iloc[knn.indices.item(), 4])
-
-    # Similarity score
-    sim_score = round(pred.max(axis=1).item()*100, 2)
+    if pred.max(axis=1) > args.VIDEO_CONFIDENCE:
+        knn = torch.nn.CosineSimilarity(dim = 1)(torch.tensor(em), embeddings).topk(1, largest=True)
+        part = str(df_train.iloc[knn.indices.item(), 4])
+        # Similarity score
+        sim_score = str(round(pred.max(axis=1).item()*100, 2))+'%'
+    else:
+        part = 'No part detected'
+        sim_score = ''
 
     return {'part_name':part,'sim_score':sim_score}
 
@@ -179,7 +182,11 @@ def image_input(content_file, df_train, sub_test_list, embeddings, ort_session, 
 
         if st.sidebar.button("SEARCH SIMILAR"):
             print_classification(col2, content_file, pred_info)
-            print_similar_img(pred_images)
+
+            if pred_info['maker']!='This is not car part !':
+                print_similar_img(pred_images)
+            else:
+                st.warning("No similar car part image ! Reduce confidence threshold OR Choose another image.")
     else:
         st.warning("Upload an Image OR Untick the Upload Button")
         st.stop()
@@ -205,7 +212,7 @@ def webcam_input(df_train, sub_test_list, embeddings, ort_session, input_name):
             # display the prediction
             part_name = pred_info['part_name']
             confidence = pred_info['sim_score']
-            label = f"{part_name}: {confidence}%"
+            label = f"{part_name} {confidence}"
             cv2.putText(
                 image,
                 label,
@@ -244,13 +251,16 @@ def print_classification(col2, content_file, pred_info):
     with col2:
         col2.markdown('## Predicted information')
         col2.markdown('')
-        col2.markdown('### - {}'.format(pred_info['maker']))
-        col2.markdown('### - {}'.format(pred_info['model']))
-        col2.markdown('### - {}'.format(pred_info['vehicle']))
-        col2.markdown('### - {}'.format(pred_info['year']))
-        col2.markdown('### - {}'.format(pred_info['part']))
-        col2.markdown('### - {}'.format(pred_info['predict_time']))
-        col2.markdown('### - {}'.format(pred_info['sim_score']))
+        if pred_info['maker']!='This is not car part !':
+            col2.markdown('### - {}'.format(pred_info['maker']))
+            col2.markdown('### - {}'.format(pred_info['model']))
+            col2.markdown('### - {}'.format(pred_info['vehicle']))
+            col2.markdown('### - {}'.format(pred_info['year']))
+            col2.markdown('### - {}'.format(pred_info['part']))
+            col2.markdown('### - {}'.format(pred_info['predict_time']))
+            col2.markdown('### - {}'.format(pred_info['sim_score']))
+        else:
+            col2.markdown('### {}'.format(pred_info['maker']))
 
 def print_similar_img(pred_images):
 

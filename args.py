@@ -7,14 +7,16 @@ SIDEBAR_TITLE = 'Navigation'
 
 
 CONTENT_IMAGES_FILE = [
-    'tail_light.jpg', 'car_wheel.jpg', 'driving_wheel.jpg',
-    'head_light.jpg', 'front_mirror.jpg', 'side_mirror.jpg',
+    'tail_light.jpg', 'wheel.jpg', 'steering_wheel.jpg',
+    'head_light.jpg', 'rear_view_mirror.jpg', 'side_mirror.jpg',
 ]
 CONTENT_IMAGES_NAME = [
-    'Tail light', 'Wheel', 'Driving wheel',
-    'Head light', 'Front mirror', 'Side mirror',
+    'Tail light', 'Wheel', 'Steering wheel',
+    'Head light', 'Rear view mirror', 'Side mirror',
 ]
 
 IMAGES_PATH = 'images'
 
 DEFAULT_CONFIDENCE_THRESHOLD = 0.8
+
+VIDEO_CONFIDENCE = 0.8

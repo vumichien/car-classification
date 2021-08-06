@@ -16,7 +16,7 @@ st.set_page_config(
 
 st.title(args.LANDINGPAGE_TITLE)
 st.sidebar.title(args.SIDEBAR_TITLE)
-method = st.sidebar.radio('Choose input source ->', options=['Image','Webcam'])
+method = st.sidebar.radio('Choose input source ->', options=['Image','Video'])
 
 # Load model
 df_train = pd.read_csv('full_set.csv')

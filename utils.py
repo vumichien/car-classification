@@ -153,7 +153,7 @@ def show_original():
         content_name = st.sidebar.selectbox("Choose the content images:", args.CONTENT_IMAGES_NAME)
         content_file = content_images_dict[content_name]
 
-    col1, col2 = st.beta_columns(2)
+    col1, col2 = st.columns(2)
     with col1:
         #col1.markdown('## Target image')
         if content_file:
@@ -177,10 +177,10 @@ def image_input(content_file, df_train, sub_test_list, embeddings, ort_session, 
             content, df_train, sub_test_list,
             embeddings, ort_session, input_name
         )
-        if st.sidebar.button("PREDICT"):
+        if st.button("PREDICT"):
             print_classification(col2, content_file, pred_info)
 
-        if st.sidebar.button("SEARCH SIMILAR"):
+        if st.button("SEARCH SIMILAR"):
             print_classification(col2, content_file, pred_info)
 
             if pred_info['maker']!='This is not car part !':
@@ -188,7 +188,8 @@ def image_input(content_file, df_train, sub_test_list, embeddings, ort_session, 
             else:
                 st.warning("No similar car part image ! Reduce confidence threshold OR Choose another image.")
     else:
-        st.warning("Upload an Image OR Untick the Upload Button")
+        st.warning("Upload an Image OR Untick the Upload Button from Options on the sidebar")
+        st.warning("Navigate input source from Navigation on the sidebar")
         st.stop()
 
 
@@ -201,7 +202,7 @@ WEBRTC_CLIENT_SETTINGS = ClientSettings(
 )
 
 def webcam_input(df_train, sub_test_list, embeddings, ort_session, input_name):
-    st.header("Webcam Live Feed")
+    st.header("Video Live Feed")
 
     class NeuralStyleTransferTransformer(VideoProcessorBase):
 
@@ -270,7 +271,7 @@ def print_similar_img(pred_images):
     st.markdown('## Most similar images')
     st.markdown('### {}'.format(pred_images['predict_time']))
 
-    col3, col4, col5 = st.beta_columns(3)
+    col3, col4, col5 = st.columns(3)
     with col3:
         col3.image(pred_images['images'][0], channels='BGR', clamp=True, width = 300)
         col3.image(pred_images['images'][1], channels='BGR', clamp=True, width = 300)

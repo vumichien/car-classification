@@ -188,7 +188,7 @@ def show_original():
         path to image
     """
 
-    if st.sidebar.checkbox('Upload', help = 'Select Upload to browse image from local machine'):
+    if st.sidebar.checkbox('Upload', value= True, help = 'Select Upload to browse image from local machine'):
         content_file = st.sidebar.file_uploader("", type=["png", "jpg", "jpeg"])
     else:
         content_name = st.sidebar.selectbox("or Choose an example Image below", args.CONTENT_IMAGES_NAME)

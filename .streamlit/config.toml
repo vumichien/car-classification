@@ -1,0 +1,21 @@
+[theme]
+# base="light"
+# backgroundColor = '#f0fdfa'
+# primaryColor="#DFFF00"
+# secondaryBackgroundColor="#15a4b4"
+# textColor = '#044553'
+# font="monospace"
+
+
+# primaryColor="#e39729"
+# backgroundColor="#d8d5c6"
+# secondaryBackgroundColor="#2f9195"
+# textColor="#36221f"
+# font="monospace"
+
+
+primaryColor="#2e9cca"
+backgroundColor="#252724"
+secondaryBackgroundColor="#3c3f58"
+textColor="#aaabb8"
+font="monospace"

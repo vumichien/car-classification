@@ -43,7 +43,7 @@ method = st.sidebar.radio('Choose input source 👇', options=['Image', 'Webcam'
 @st.cache(suppress_st_warning=False)
 def initial_setup():
     df_train = pd.read_csv('full_set.csv')
-    sub_test_list = list(df_train['Image'].map(lambda x: get_image(x)))
+    sub_test_list = sorted(list(df_train['Image'].map(lambda x: get_image(x))))
     # embeddings = torch.load('embeddings.pt')
     with open('embeddings.npy', 'rb') as f:
         embeddings = np.load(f)

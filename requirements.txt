@@ -7,3 +7,4 @@ streamlit==0.86.0
 av==8.0.3
 streamlit_webrtc==0.25.1
 streamlit-lottie
+transformers

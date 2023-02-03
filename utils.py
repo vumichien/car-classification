@@ -1,6 +1,6 @@
-#import torch
-#import torch.nn.functional as F
-#from torchvision import transforms
+# import torch
+# import torch.nn.functional as F
+# from torchvision import transforms
 
 from PIL import Image
 import numpy as np
@@ -10,7 +10,7 @@ from numpy.linalg import norm
 import onnx, os, time, onnxruntime
 import pandas as pd
 import threading
-#import queue
+# import queue
 import cv2
 import av
 
@@ -25,17 +25,16 @@ from streamlit_webrtc import (
 import args
 
 
-
 # def to_numpy(tensor):
 #     return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
 
 def get_image(x):
-  return x.split(', ')[0]
+    return x.split(', ')[0]
+
 
 # Transform image to ToTensor
 @st.cache(suppress_st_warning=True, allow_output_mutation=True)
-def transform_image(image, IMG = True):
-
+def transform_image(image, IMG=True):
     # transform = transforms.Compose([
     #     transforms.Resize((224, 224)),
     #     transforms.ToTensor(),
@@ -45,10 +44,10 @@ def transform_image(image, IMG = True):
         image = np.asarray(Image.open(image))
         # -------------- RESIZE USING CV2 ---------------------
         image = cv2.resize(image, dsize=(224, 224))
-        image = np.transpose(image, (2,0,1))
-        #image = (image/255-np.expand_dims(np.array([0.485, 0.456, 0.4065]),axis = (1,2)))/np.expand_dims(np.array([0.229, 0.224, 0.225]),axis = (1,2))
-        image = (image/255-np.array(args.MEAN))/np.array(args.STD)
-        img_transformed = np.expand_dims(image.astype(np.float32), axis = 0)
+        image = np.transpose(image, (2, 0, 1))
+        # image = (image/255-np.expand_dims(np.array([0.485, 0.456, 0.4065]),axis = (1,2)))/np.expand_dims(np.array([0.229, 0.224, 0.225]),axis = (1,2))
+        image = (image / 255 - np.array(args.MEAN)) / np.array(args.STD)
+        img_transformed = np.expand_dims(image.astype(np.float32), axis=0)
         # x = torch.from_numpy(image.astype(np.float32))
         # x = torch.transpose(x, 2, 0) # shape [3, 224, 224]
         # -------------- RESIZE USING CV2 ---------------------
@@ -59,10 +58,10 @@ def transform_image(image, IMG = True):
     else:
         # -------------- RESIZE USING CV2 ---------------------
         image = cv2.resize(image, dsize=(224, 224))
-        image = np.transpose(image, (2,0,1))
-        #image = (image/255-np.expand_dims(np.array([0.485, 0.456, 0.4065]),axis = (1,2)))/np.expand_dims(np.array([0.229, 0.224, 0.225]),axis = (1,2))
-        image = (image/255-np.array(args.MEAN))/np.array(args.STD)
-        img_transformed = np.expand_dims(image.astype(np.float32), axis = 0)
+        image = np.transpose(image, (2, 0, 1))
+        # image = (image/255-np.expand_dims(np.array([0.485, 0.456, 0.4065]),axis = (1,2)))/np.expand_dims(np.array([0.229, 0.224, 0.225]),axis = (1,2))
+        image = (image / 255 - np.array(args.MEAN)) / np.array(args.STD)
+        img_transformed = np.expand_dims(image.astype(np.float32), axis=0)
         # x = torch.from_numpy(image.astype(np.float32))
         # x = torch.transpose(x, 2, 0)
         # -------------- RESIZE USING CV2 ---------------------
@@ -72,22 +71,24 @@ def transform_image(image, IMG = True):
 
     return img_transformed
 
+
 # predict multi-level classification
 @st.cache(suppress_st_warning=True, allow_output_mutation=True)
 def get_classification(image_tensor, df_train, sub_test_list, embeddings,
-    ort_session, input_name, confidence
-):
+                       ort_session, input_name, confidence
+                       ):
     # Prediction time
     start = time.time()
-    #ort_inputs = {input_name: to_numpy(image_tensor)}
+    # ort_inputs = {input_name: to_numpy(image_tensor)}
     ort_inputs = {input_name: image_tensor}
     pred, em = ort_session.run(None, ort_inputs)
 
-    if pred.max(axis=1) > confidence:   # threshold to select of item is car part or not, Yes if > 0.5
+    if pred.max(axis=1) > confidence:  # threshold to select of item is car part or not, Yes if > 0.5
         # Compute kNN (using Cosine)
-        #knn = torch.nn.CosineSimilarity(dim = 1)(torch.tensor(em), embeddings).topk(1, largest=True)
+        # knn = torch.nn.CosineSimilarity(dim = 1)(torch.tensor(em), embeddings).topk(1, largest=True)
 
-        knn = np.array([dot((em), embeddings[i])/(norm(em)*norm(embeddings[i])) for i in range(embeddings.shape[0])]).flatten()
+        knn = np.array(
+            [dot((em), embeddings[i]) / (norm(em) * norm(embeddings[i])) for i in range(embeddings.shape[0])]).flatten()
         knn = np.argsort(knn)[-1]
 
         # maker = 'Maker: '+str(df_train.iloc[knn.indices.item(), 0])
@@ -95,77 +96,81 @@ def get_classification(image_tensor, df_train, sub_test_list, embeddings,
         # vehicle = str(df_train.iloc[knn.indices.item(), 2])
         # year = str(df_train.iloc[knn.indices.item(), 3])
         # part = 'Part: '+str(df_train.iloc[knn.indices.item(), 4])
-        maker = 'Maker: '+str(df_train.iloc[knn, 0])
+        maker = 'Maker: ' + str(df_train.iloc[knn, 0])
         model = str(df_train.iloc[knn, 1])
-        if model=='nan':
-            model='Model: No information'
+        if model == 'nan':
+            model = 'Model: No information'
         else:
-            model='Model: '+model
+            model = 'Model: ' + model
         vehicle = str(df_train.iloc[knn, 2])
-        if vehicle=='nan':
-            vehicle='Vehicle: No information'
+        if vehicle == 'nan':
+            vehicle = 'Vehicle: No information'
         else:
-            vehicle='Vehicle: '+vehicle
+            vehicle = 'Vehicle: ' + vehicle
         year = str(df_train.iloc[knn, 3])
-        if year=='nan':
-            year='Year: No information'
+        if year == 'nan':
+            year = 'Year: No information'
         else:
-            year='Year: '+year
-        part = 'Part: '+str(df_train.iloc[knn, 4])
-        predict_time = 'Predict time: '+str(round(time.time() - start,4))+' seconds'
+            year = 'Year: ' + year
+        part = 'Part: ' + str(df_train.iloc[knn, 4])
+        predict_time = 'Predict time: ' + str(round(time.time() - start, 4)) + ' seconds'
 
         # Similarity score
-        sim_score = 'Confidence: '+str(round(pred.max(axis=1).item()*100, 2))+'%'
+        sim_score = 'Confidence: ' + str(round(pred.max(axis=1).item() * 100, 2)) + '%'
 
     else:
         maker = 'This is not car part !'
-        model=vehicle=year=part=predict_time=sim_score=None
+        model = vehicle = year = part = predict_time = sim_score = None
 
-    return {'maker':maker,'model':model,'vehicle':vehicle,'year':year, 'part':part, 'predict_time':predict_time,'sim_score':sim_score}
+    return {'maker': maker, 'model': model, 'vehicle': vehicle, 'year': year, 'part': part,
+            'predict_time': predict_time, 'sim_score': sim_score}
+
 
 @st.cache(suppress_st_warning=True, allow_output_mutation=True)
 def get_classification_frame(image_tensor, df_train, sub_test_list, embeddings,
-    ort_session, input_name
-):
-
-    #ort_inputs = {input_name: to_numpy(image_tensor)}
+                             ort_session, input_name
+                             ):
+    # ort_inputs = {input_name: to_numpy(image_tensor)}
     ort_inputs = {input_name: image_tensor}
     pred, em = ort_session.run(None, ort_inputs)
 
     if pred.max(axis=1) > args.VIDEO_CONFIDENCE:
         # knn = torch.nn.CosineSimilarity(dim = 1)(torch.tensor(em), embeddings).topk(1, largest=True)
         # part = str(df_train.iloc[knn.indices.item(), 4])
-        knn = np.array([dot((em), embeddings[i])/(norm(em)*norm(embeddings[i])) for i in range(embeddings.shape[0])]).flatten()
+        knn = np.array(
+            [dot((em), embeddings[i]) / (norm(em) * norm(embeddings[i])) for i in range(embeddings.shape[0])]).flatten()
         knn = np.argsort(knn)[-1]
         part = str(df_train.iloc[knn, 4])
         # Similarity score
-        sim_score = str(round(pred.max(axis=1).item()*100, 2))+'%'
+        sim_score = str(round(pred.max(axis=1).item() * 100, 2)) + '%'
     else:
         part = 'No part detected'
         sim_score = ''
 
-    return {'part_name':part,'sim_score':sim_score}
+    return {'part_name': part, 'sim_score': sim_score}
+
 
 # predict similarity
 @st.cache(suppress_st_warning=True, allow_output_mutation=True)
 def get_similarity(image_tensor, df_train, sub_test_list, embeddings,
-    ort_session, input_name
-):
+                   ort_session, input_name
+                   ):
     start = time.time()
-    #ort_inputs = {input_name: to_numpy(image_tensor)}
+    # ort_inputs = {input_name: to_numpy(image_tensor)}
     ort_inputs = {input_name: image_tensor}
     pred, em = ort_session.run(None, ort_inputs)
 
     # Compute kNN (using Cosine)
-    #knn = torch.nn.CosineSimilarity(dim = 1)(torch.tensor(em), embeddings).topk(6, largest=True)
+    # knn = torch.nn.CosineSimilarity(dim = 1)(torch.tensor(em), embeddings).topk(6, largest=True)
     # idx = knn.indices.numpy()
-    knn = np.array([dot((em), embeddings[i])/(norm(em)*norm(embeddings[i])) for i in range(embeddings.shape[0])]).flatten()
+    knn = np.array(
+        [dot((em), embeddings[i]) / (norm(em) * norm(embeddings[i])) for i in range(embeddings.shape[0])]).flatten()
     idx = np.argsort(knn)[-6:]
-    predict_time = 'Predict time: '+str(round(time.time() - start,4))+' seconds'
-    images_path = 'Test_set'
+    predict_time = 'Predict time: ' + str(round(time.time() - start, 4)) + ' seconds'
+    images_path = 'raw_images'
     images = [os.path.join(images_path, sub_test_list[i]) for i in idx]
     # sub_test_list
-    return {'images': images, 'predict_time':predict_time}
+    return {'images': images, 'predict_time': predict_time}
 
 
 # --------------------------------------------------------------------------------------------
@@ -173,13 +178,12 @@ def get_similarity(image_tensor, df_train, sub_test_list, embeddings,
 # --------------------------------------------------------------------------------------------
 
 content_images_dict = {
-    name: os.path.join(args.IMAGES_PATH, filee) for name, filee in zip(args.CONTENT_IMAGES_NAME, args.CONTENT_IMAGES_FILE)
+    name: os.path.join(args.IMAGES_PATH, filee) for name, filee in
+    zip(args.CONTENT_IMAGES_NAME, args.CONTENT_IMAGES_FILE)
 }
 
 
-
 def show_original():
-
     """ Show Uploaded or Example image before prediction
 
     Returns:
@@ -188,7 +192,7 @@ def show_original():
         path to image
     """
 
-    if st.sidebar.checkbox('Upload', value= True, help = 'Select Upload to browse image from local machine'):
+    if st.sidebar.checkbox('Upload', value=True, help='Select Upload to browse image from local machine'):
         content_file = st.sidebar.file_uploader("", type=["png", "jpg", "jpeg"])
     else:
         content_name = st.sidebar.selectbox("or Choose an example Image below", args.CONTENT_IMAGES_NAME)
@@ -196,7 +200,7 @@ def show_original():
 
     col1, col2 = st.columns(2)
     with col1:
-        #col1.markdown('## Target image')
+        # col1.markdown('## Target image')
         if content_file:
             col1.write('')
             col1.image(content_file, channels='BGR', width=300, clamp=True, caption='Input image')
@@ -205,7 +209,6 @@ def show_original():
 
 
 def image_input(content_file, df_train, sub_test_list, embeddings, ort_session, input_name, col2):
-
     # Set confidence level
     confidence_threshold = st.slider(
         "Confidence threshold", 0.0, 1.0, args.DEFAULT_CONFIDENCE_THRESHOLD, 0.05,
@@ -232,9 +235,9 @@ def image_input(content_file, df_train, sub_test_list, embeddings, ort_session, 
         if col7.button("SEARCH SIMILAR"):
             print_classification(col2, content_file, pred_info)
 
-            if pred_info['maker']!='This is not car part !':
-                #container = st.container()
-                print_similar_img(pred_images) #, container)
+            if pred_info['maker'] != 'This is not car part !':
+                # container = st.container()
+                print_similar_img(pred_images)  # , container)
             else:
                 st.warning("No similar car part image ! Reduce confidence threshold OR Choose another image.")
     else:
@@ -278,7 +281,7 @@ def webcam_input(df_train, sub_test_list, embeddings, ort_session, input_name):
 
         def recv(self, frame: av.VideoFrame) -> av.VideoFrame:
             image = frame.to_ndarray(format="bgr24")
-            content = transform_image(image, IMG = False)
+            content = transform_image(image, IMG=False)
             pred_info = get_classification_frame(
                 content, df_train, sub_test_list,
                 embeddings, ort_session, input_name
@@ -297,14 +300,13 @@ def webcam_input(df_train, sub_test_list, embeddings, ort_session, input_name):
 
 
 def print_classification(col2, content_file, pred_info):
-
     """ Print classification prediction
     """
 
     with col2:
         col2.markdown('### Predicted information')
         col2.markdown('')
-        if pred_info['maker']!='This is not car part !':
+        if pred_info['maker'] != 'This is not car part !':
             col2.markdown('#### - {}'.format(pred_info['maker']))
             col2.markdown('#### - {}'.format(pred_info['model']))
             col2.markdown('#### - {}'.format(pred_info['vehicle']))
@@ -315,8 +317,8 @@ def print_classification(col2, content_file, pred_info):
         else:
             col2.markdown('### {}'.format(pred_info['maker']))
 
-def print_similar_img(pred_images):
 
+def print_similar_img(pred_images):
     """ Print similarity images prediction
     """
 
@@ -325,13 +327,13 @@ def print_similar_img(pred_images):
 
     col3, col4, col5 = st.columns(3)
     with col3:
-        col3.image(pred_images['images'][0], channels='BGR', clamp=True, width = 300)
-        col3.image(pred_images['images'][1], channels='BGR', clamp=True, width = 300)
+        col3.image(pred_images['images'][0], channels='BGR', clamp=True, width=300)
+        col3.image(pred_images['images'][1], channels='BGR', clamp=True, width=300)
 
     with col4:
-        #col4.markdown('# ')
-        col4.image(pred_images['images'][3], channels='BGR', clamp=True, width = 300)
-        col4.image(pred_images['images'][4], channels='BGR', clamp=True, width = 300)
+        # col4.markdown('# ')
+        col4.image(pred_images['images'][3], channels='BGR', clamp=True, width=300)
+        col4.image(pred_images['images'][4], channels='BGR', clamp=True, width=300)
     with col5:
-        col5.image(pred_images['images'][5], channels='BGR', clamp=True, width = 300)
-        col5.image(pred_images['images'][2], channels='BGR', clamp=True, width = 300)
+        col5.image(pred_images['images'][5], channels='BGR', clamp=True, width=300)
+        col5.image(pred_images['images'][2], channels='BGR', clamp=True, width=300)
